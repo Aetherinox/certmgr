@@ -12,6 +12,7 @@ using Cfg = certmgr.Properties.Settings;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Xml.Linq;
 
 namespace CertMgr
 {
@@ -24,6 +25,21 @@ namespace CertMgr
         */
 
         private AppInfo AppInfo = new AppInfo( );
+
+        /*
+            Define > Exit Codes
+        */
+
+        [Flags]
+        enum ExitCode : int
+        {
+            None                = -1,
+            Abort               = 0,
+            Success             = 1,
+            ErrorMissingArg     = 2,
+            ErrorMissingDep     = 4,
+            ErrorGeneric        = 8,
+        }
 
         /*
             Execute powershell query
@@ -132,7 +148,7 @@ namespace CertMgr
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write( $"   -n, --info               ");
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write( "Show information about the pfx_infile" );
+                Console.Write( "Show information about a specified pfx keyfile" );
 
                 Console.WriteLine( );
 
@@ -146,7 +162,7 @@ namespace CertMgr
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write( $"   -i, --install            ");
                 Console.ForegroundColor = ConsoleColor.Gray;
-                Console.Write( "Install PFX keyfile" );
+                Console.Write( "Install PFX keyfile and register with container" );
 
                 Console.WriteLine( );
 
@@ -174,49 +190,49 @@ namespace CertMgr
 
                 Console.WriteLine( " Examples:" );
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -n <PFX_FILE>                          ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -n <PFX_FILE>                            ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Show information about the pfx_infile" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -i <PFX_FILE> <PFX_PASSWD>             ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -i <PFX_FILE> <PFX_PASSWD>               ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Install PFX keyfile" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -i <PFX_FILE> <PFX_PASSWD> <VS_KEY>    ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -i <PFX_FILE> <PFX_PASSWD> <VS_KEY_ID>   ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Install PFX keyfile for VS project container" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -l                                     ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -l                                       ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "List all certificates" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -d <VS_KEY_ID>                         ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -d <VS_KEY_ID>                           ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Delete key for specified container id" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -x                                     ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -x                                       ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Delete all keys for all containers" );
 
                 Console.WriteLine( );
 
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -s <PFX_THUMBPRINT> <FILE_TO_SIGN>     ");
+                Console.Write( $"   {Assembly.GetEntryAssembly( ).GetName( ).Name } -s <PFX_THUMBPRINT> <FILE_TO_SIGN>       ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write( "Sign binary / dll with key using signtool" );
 
@@ -228,7 +244,7 @@ namespace CertMgr
                 Console.WriteLine( );
                 Console.ResetColor() ;
 
-            return -1;
+            return (int)ExitCode.None;
         }
 
         /*
@@ -238,6 +254,8 @@ namespace CertMgr
         static int Main( string[] args )
         {
 
+            string assemblyName = Assembly.GetEntryAssembly( ).GetName( ).Name;
+
             /*
                 Help / About
             */
@@ -245,7 +263,7 @@ namespace CertMgr
             if ( args.Length == 0 || args[ 0 ] == "-h" || args[ 0 ] == "--help" )
             {
                 About( );
-                return -1;
+                return (int)ExitCode.None;
             }
 
             /*
@@ -253,7 +271,7 @@ namespace CertMgr
                     lists the status of a specified pfx cert file
             */
 
-            if ( args[ 0 ].StartsWith( "--info" ) || args[ 0 ].StartsWith( "-n" ) )
+            if ( args[ 0 ] == "--info" || args[ 0 ] == "-n" )
             {
 
                 /*
@@ -273,11 +291,12 @@ namespace CertMgr
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write( $"        {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe --info <PFX_FILE>");
+                    Console.Write( $"        {assemblyName} --info <PFX_FILE>");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -1;
+                    return (int)ExitCode.ErrorMissingArg;
                 }
 
                 string arg_pfx_path             = args[ 1 ];
@@ -286,7 +305,7 @@ namespace CertMgr
                 Console.WriteLine( arg_pfx_container_id );
                 Console.WriteLine( $"Installed: {ResolveKeySourceTask.IsContainerInstalled( arg_pfx_container_id )}" );
 
-                return 0;
+                return (int)ExitCode.Success;
             }
 
             /*
@@ -294,7 +313,7 @@ namespace CertMgr
                     Utilize certutil to list all keys
             */
 
-            if ( args[ 0 ].StartsWith( "--list" ) || args[ 0 ].StartsWith( "-l" ) )
+            if ( args[ 0 ] == "--list" || args[ 0 ] == "-l" )
             {
 
                 Console.WriteLine( );
@@ -332,14 +351,15 @@ namespace CertMgr
                     Console.Write( @"C:\Windows\System32\certutil.exe" );
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -1;
+                    return (int)ExitCode.ErrorMissingDep;
                 }
 
                 string cmd = "certutil -csp \"Microsoft Strong Cryptographic Provider\" -key";
                 PowershellQ( cmd );
 
-                return -1;
+                return (int)ExitCode.Success;
 
             }
 
@@ -347,7 +367,7 @@ namespace CertMgr
                 Certutil > Delete
             */
 
-            if ( args[ 0 ].StartsWith( "--delete" ) || args[ 0 ].StartsWith( "-d" ) )
+            if ( args[ 0 ] == "--delete" || args[ 0 ] == "-d" )
             {
                 if ( args.Length == 1 )
                 {
@@ -362,11 +382,12 @@ namespace CertMgr
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write( $"        {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe --delete <VS_ID_CONTAINER>");
+                    Console.Write( $"        {assemblyName} --delete <VS_ID_CONTAINER>");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -1;
+                    return (int)ExitCode.ErrorMissingArg;
                 }
 
                 Console.WriteLine( );
@@ -405,8 +426,9 @@ namespace CertMgr
                     Console.Write( @"C:\Windows\System32\certutil.exe" );
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -1;
+                    return (int)ExitCode.ErrorMissingDep;
                 }
 
                 string arg_container_id     = args[ 1 ];
@@ -414,14 +436,14 @@ namespace CertMgr
 
                 PowershellQ( ps_executecmd );
 
-                return -1;
+                return (int)ExitCode.Success;
             }
 
             /*
                 Certutil > Delete All
             */
 
-            if ( args[ 0 ].StartsWith( "--deleteall" ) || args[ 0 ].StartsWith( "-x" ) )
+            if ( args[ 0 ] == "--deleteall" || args[ 0 ] == "-x" )
             {
                 Console.WriteLine( );
                 Console.ForegroundColor = ConsoleColor.DarkRed;
@@ -433,17 +455,52 @@ namespace CertMgr
                 Console.ForegroundColor = ConsoleColor.Gray ;
                 Console.ResetColor( );
 
+                Console.WriteLine( );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine( " Are you sure you want to delete all containers and associated keypairs?" );
+                Console.WriteLine( " You cannot undo this action!!!!" );
+                Console.WriteLine( );
+
+                Console.WriteLine( );
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write( " Are you sure? [ Y | N ]:  " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Out.Flush( );
+
+                ConsoleKeyInfo yesNo = Console.ReadKey( true );
+
+                /*
+                    Delete > Confirmation
+                */
+
+                if ( yesNo.Key == ConsoleKey.N )
+                {
+                    Console.WriteLine( );
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine( " Aborted certificate deletion. No changes made." );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine( );
+                    
+                    return (int)ExitCode.Abort;
+                }
+
                 string ps_executecmd ="certutil -csp \"Microsoft Strong Cryptographic Provider\" -key | Select-String -Pattern \"VS_KEY\" | %{ $_.ToString().Trim()} | %{ certutil -delkey -csp \"Microsoft Strong Cryptographic Provider\" $_}";
                 PowershellQ( ps_executecmd );
 
-                return -1;
+                Console.WriteLine( );
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine( " Successfully deleted all keypairs and associated containers." );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine( );
+
+                return (int)ExitCode.Success;
             }
 
             /*
                 Certutil > Sign
             */
 
-            if ( args[ 0 ].StartsWith( "--sign" ) || args[ 0 ].StartsWith( "-s" ) )
+            if ( args[ 0 ] == "--sign" || args[ 0 ] == "-s" )
             {
                 Console.WriteLine( );
                 Console.ForegroundColor = ConsoleColor.DarkRed;
@@ -475,8 +532,9 @@ namespace CertMgr
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( " signtool.exe must be in your Windows PATH environment variables list." );
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -1;
+                    return (int)ExitCode.ErrorMissingDep;
                 }
 
                 /*
@@ -496,11 +554,12 @@ namespace CertMgr
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write( $"        {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe --sign <PFX_THUMBPRINT> <FILE_TO_SIGN>");
+                    Console.Write( $"        {assemblyName} --sign <PFX_THUMBPRINT> <FILE_TO_SIGN>");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -2;
+                    return (int)ExitCode.ErrorMissingArg;
                 }
 
                 string arg_pfx_thumbprint   = args[ 1 ];
@@ -522,11 +581,12 @@ namespace CertMgr
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
                     Console.ForegroundColor = ConsoleColor.DarkGray;
-                    Console.Write( $"        {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe --sign <PFX_THUMBPRINT> <FILE_TO_SIGN>");
+                    Console.Write( $"        {assemblyName} --sign <PFX_THUMBPRINT> <FILE_TO_SIGN>");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine( );
+                    Console.WriteLine( );
 
-                    return -2;
+                    return (int)ExitCode.ErrorMissingArg;
                 }
 
                 string arg_file_tosign      = args[ 2 ];
@@ -534,17 +594,80 @@ namespace CertMgr
  
                 PowershellQ( ps_executecmd );
 
-                return -1;
+                return (int)ExitCode.Success;
             }
 
             /*
                 Install
             */
 
-            if ( args[ 0 ].StartsWith( "--install" ) || args[ 0 ].StartsWith( "-i" ) )
+            if ( args[ 0 ] == "--install" || args[ 0 ] == "-i" )
             {
+
+                /*
+                    Arg > Missing pfx file
+                */
+
+                if ( args.Length == 1 )
+                {
+                    Console.WriteLine( );
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write( " Error: " );
+
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write( "Must specify " );
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write( "PFX_FILE" );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine( );
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write( $"        {assemblyName} --install <PFX_FILE>");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine( );
+                    Console.WriteLine( );
+
+                    return (int)ExitCode.ErrorMissingArg;
+                }
+
+                /*
+                    assign > pfx path
+                */
+
                 string arg_pfx_path         = args[ 1 ];
                 string arg_pfx_container_id = args.Length == 4 ? args[ 3 ] : ResolveKeySourceTask.ResolveAssemblyKey( arg_pfx_path );
+
+                /*
+                    Displays additional information
+                */
+
+                if ( !String.IsNullOrEmpty( arg_pfx_container_id ) )
+                {
+                    Console.WriteLine( );
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine( " Located Key and Container: " );
+
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine( );
+
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write( " Container:       " );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write( arg_pfx_container_id );
+
+                    Console.WriteLine( );
+
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.Write( " Installed:       " );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write( ResolveKeySourceTask.IsContainerInstalled( arg_pfx_container_id ) );
+
+                    Console.WriteLine( );
+                    Console.WriteLine( );
+                }
+
+                /*
+                    Arg > pfx password
+                */
 
                 if ( args.Length == 2 )
                 {
@@ -557,75 +680,129 @@ namespace CertMgr
                     Console.WriteLine( );
                     Console.WriteLine( "        <pfx_passwd>           PFX certificate password" );
                     Console.WriteLine( "        <vs_id_container>      Visual Studio container ID" );
+                    Console.WriteLine( );
+                    Console.WriteLine( );
 
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine( " Install PFX file" );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write( $"        {assemblyName} --install <PFX_FILE> <PFX_PASSWD>");
 
-                    return 0;
+                    Console.WriteLine( );
+                    Console.WriteLine( );
+
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine( " Install PFX file under container" );
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write( $"        {assemblyName} --install <PFX_FILE> <PFX_PASSWD> <VS_ID_CONTAINER>");
+
+                    Console.WriteLine( );
+                    Console.WriteLine( );
+
+                    return (int)ExitCode.ErrorMissingArg;
                 }
+
+                /*
+                    check if specified pfx key already exists in the strong name container
+                */
 
                 if ( ResolveKeySourceTask.IsContainerInstalled( arg_pfx_container_id ))
                 {
-                    //Installs from infile in the specified key container. The key container resides in the strong name CSP.
                     Console.WriteLine( );
-                    Console.Error.WriteLine( "Key pair already installed in strong name CSP key container: " + arg_pfx_container_id + "." );
+                    Console.Error.WriteLine( "Keypair already installed in strong name CSP container: " + arg_pfx_container_id + "." );
                     Console.WriteLine( );
                     Console.Error.WriteLine( "To delete the key container run following command from the Developer Command Prompt:");
-                    Console.Error.WriteLine( $"     {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe -delete " + arg_pfx_container_id );
+                    Console.Error.WriteLine( $"     {assemblyName} --delete " + arg_pfx_container_id );
                     Console.Error.WriteLine( );
                     Console.Error.WriteLine( "To list all installed key containers run the command:" );
-                    Console.Error.WriteLine( $"     {Assembly.GetEntryAssembly( ).GetName( ).Name }.exe -list" );
+                    Console.Error.WriteLine( $"     {assemblyName} --list" );
 
-                    return -2;
+                    return (int)ExitCode.Abort;
                 }
 
+                /*
+                    assign > pfx password
+                */
+
                 string arg_pfx_passwd = args[ 2 ];
+
 
                 /*
                     open pfx and export private key
                 */
 
-                var pfxCert         = new X509Certificate2( arg_pfx_path, arg_pfx_passwd, X509KeyStorageFlags.Exportable );
-                var pfxPrivateKey   = pfxCert.PrivateKey as RSACryptoServiceProvider;
-                var pfxCspBlob      = pfxPrivateKey.ExportCspBlob( true );
+                var pfx_cert        = new X509Certificate2( arg_pfx_path, arg_pfx_passwd, X509KeyStorageFlags.Exportable );
+                var pfx_key_priv    = pfx_cert.PrivateKey as RSACryptoServiceProvider;
+                var pfx_csp         = pfx_key_priv.ExportCspBlob( true );
 
                 /*
                     Create Cryptographic Service Provider and register key container
                 */
 
                 const string DotNetStrongSigningCSP = "Microsoft Strong Cryptographic Provider";
-                var cspParameters = new CspParameters( 1, DotNetStrongSigningCSP, arg_pfx_container_id )
+                var cspParams = new CspParameters( 1, DotNetStrongSigningCSP, arg_pfx_container_id )
                 {
-                    KeyNumber   = (int)KeyNumber.Signature, // signing container
+                    KeyNumber   = (int)KeyNumber.Signature,
                     Flags       = CspProviderFlags.UseMachineKeyStore | CspProviderFlags.UseNonExportableKey
                 };
 
                 try
                 {
-                    using ( var rsaCSP = new RSACryptoServiceProvider( cspParameters ) )
+                    using ( var RsaCSP = new RSACryptoServiceProvider( cspParams ) )
                     {
-                        rsaCSP.PersistKeyInCsp = true;
-                        rsaCSP.ImportCspBlob( pfxCspBlob );
+                        RsaCSP.PersistKeyInCsp = true;
+                        RsaCSP.ImportCspBlob( pfx_csp );
                     };
                 }
                 catch ( CryptographicException e )
                 {
-                    if ( !e.Message.Contains( "Object already exists." ) )
+                    if ( !e.Message.Contains( "Container already exists." ) )
                     {
                         throw;
                     }
-                    Console.Error.WriteLine( $"An error occurred while attempting to create the strong name CSP key container '{arg_pfx_container_id}'.");
-                    Console.Error.WriteLine( "It's likely that this container was already created by another user.");
-                    Console.Error.WriteLine( "Either get that user to modify the container to be readable by everyone, or to delete the container with the following command from the Developer Command Prompt:");
-                    Console.Error.WriteLine( $"sn.exe -d {arg_pfx_container_id}");
 
-                    return -2;
+                    Console.Error.WriteLine( $"An error occurred while attempting to create the strong name CSP key container '{arg_pfx_container_id}'.");
+                    Console.Error.WriteLine( "The ontainer may have been created by another user.");
+                    Console.Error.WriteLine( "Modify the container to be readable by everyone, or delete the container with the following command from the Developer Command Prompt:");
+                    Console.Error.WriteLine( $"     {assemblyName} --delete {arg_pfx_container_id}" );
+                    Console.Error.WriteLine( $"     sn.exe -d {arg_pfx_container_id}" );
+
+                    return (int)ExitCode.ErrorGeneric;
                 }
 
-                Console.Error.WriteLine($"The key pair has been installed into the strong name CSP key container '{arg_pfx_container_id}'.");
-                Console.WriteLine( arg_pfx_container_id );
+                /*
+                    Successful creation
+                */
 
-                return 0;
+                Console.WriteLine( );
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write( " Success: " );
 
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( "Keypair was successfully installed into strong name CSP key container:" );
+                Console.WriteLine( );
+                Console.WriteLine( );
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write( " Container:       " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( arg_pfx_container_id );
+
+                Console.WriteLine( );
+
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.Write( " Keyfile:         " );
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write( arg_pfx_path );
+
+                Console.WriteLine( );
+                Console.WriteLine( );
+
+                return (int)ExitCode.Success;
             }
+
+            /*
+                User specified no args
+            */
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write( " Error: " );
@@ -634,7 +811,7 @@ namespace CertMgr
             Console.Write( "Unknown command" );
             Console.WriteLine( );
 
-            return -1;
+            return (int)ExitCode.None;
 
         }
 

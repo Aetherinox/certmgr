@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net481</TargetFramework>
+    <AssemblyTitle>StrongName Certification Manager</AssemblyTitle>
+    <AssemblyDescription>Utility to manage certificates and strong names. Replace the sn.exe -i command that does not accepts password. Created by Honzajscz</AssemblyDescription>
+    <AssemblyProduct>DevOps</AssemblyProduct>
+    <Authors>Aetherinox</Authors>
+    <RepositoryUrl>https://github.com/aetherinox/certmgr</RepositoryUrl>
+    <Copyright>Copyright © 2024</Copyright> 
+    <OutputType>Exe</OutputType>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>certmgr.ico</ApplicationIcon>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>aetherx_9a.priv.pfx</AssemblyOriginatorKeyFile>
+    <PackageProjectUrl>https://github.com/Aetherinox/certmgr</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="certmgr.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Management" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\resource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+<Target Name="BeforeBuild">
+    <ItemGroup>
+        <AssemblyAttributes Include="MyApp.MyCustomAttribute">
+            <_Parameter1>$(USERNAME)</_Parameter1>
+        </AssemblyAttributes>
+    </ItemGroup>
+    <WriteCodeFragment AssemblyAttributes="@(AssemblyAttributes)" Language="C#" OutputFile="SolutionInfo.cs">
+        <Output TaskParameter="OutputFile" ItemName="Compile" />
+        <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
+</Target>
+
+</Project>

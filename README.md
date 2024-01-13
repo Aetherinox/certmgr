@@ -85,3 +85,11 @@ The following information displays the command syntax for certmgr.exe
 | `certmgr -s <PFX_THUMBPRINT> <FILE_TO_SIGN>` | Sign binary / dll with key using signtool |
 
 <br />
+
+---
+
+<br />
+
+# Previews
+
+<p align="center"><img style="width: 85%;text-align: center;border: 1px solid #353535;" src="Docs/images/1.png"></p>

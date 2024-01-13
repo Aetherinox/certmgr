@@ -31,7 +31,7 @@ The above error can occur either when you're attaching a new keypair to your pro
 Typically to correct this, you would utilize `sn.exe` and execute the command:
 
 ```shell
-sn -i <KeyFile> <ContainerName>
+sn -i <PFX_KEYFILE> <CONTAINER_ID>
 ```
 
 However, many users (and myself) have ran across the issue that this command does not rectify the issue.
@@ -46,7 +46,7 @@ You should then be able to successfully build your project and sign it with your
 
 <br />
 
-Full commands listed below.
+Full [commands](#commands) listed below with [examples](#syntax)
 
 <br />
 

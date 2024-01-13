@@ -61,8 +61,8 @@ This console application has a few dependencies depending on your needs.
 
 | Dependency | Description |
 | --- | --- |
-| `certutil` | <br />[Certutil]([text](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/certutil)) is required for CertMgr **Delete** and **List** functionality.<br /><br />Certutil should come with windows and is part of the Windows Certificate service. <br /><br />You should already have it with your operating system. <br /><br />|
-| `signtool` | <br />The [Sign Utility]([text](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool)) is required if using the CertMgr **Sign** functionality. <br /> <br /> Can be installed from the [Windows 10 SDK / Windows 11 SDK / Windows Kit]([text](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)), or [Visual Studio]([text](https://visualstudio.microsoft.com/downloads/)). <br /> <br /> |
+| `certutil` | <br />[Certutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/certutil) is required for CertMgr **Delete** and **List** functionality.<br /><br />Certutil should come with windows and is part of the Windows Certificate service. <br /><br />You should already have it with your operating system. <br /><br />|
+| `signtool` | <br />The [Sign Tool](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool) is required if using the CertMgr **Sign** functionality. <br /> <br /> Can be installed from the [Windows 10 SDK / Windows 11 SDK / Windows Kit](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/), or [Visual Studio](https://visualstudio.microsoft.com/downloads/). <br /> <br /> |
 
 <br />
 
